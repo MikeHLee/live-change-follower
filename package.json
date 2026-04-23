@@ -1,0 +1,270 @@
+{
+  "name": "live-change-follower",
+  "displayName": "Live Change Follower",
+  "description": "Watch your terminal-based coding agents work live: multi-file follow mode, timeline with diffs, and a diagnostics bridge so agents can see LSP/linter errors.",
+  "version": "0.4.0",
+  "publisher": "MikeHLee",
+  "license": "MIT",
+  "icon": "assets/icon-256x256.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MikeHLee/live-change-follower"
+  },
+  "bugs": {
+    "url": "https://github.com/MikeHLee/live-change-follower/issues"
+  },
+  "homepage": "https://github.com/MikeHLee/live-change-follower#readme",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "file watcher",
+    "coding agent",
+    "cli agent",
+    "live edit",
+    "follow mode",
+    "diagnostics",
+    "lsp",
+    "linter"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "liveChangeFollower.toggle",
+        "title": "Live Change Follower: Toggle Follow Mode"
+      },
+      {
+        "command": "liveChangeFollower.enable",
+        "title": "Live Change Follower: Enable Follow Mode"
+      },
+      {
+        "command": "liveChangeFollower.disable",
+        "title": "Live Change Follower: Disable Follow Mode"
+      },
+      {
+        "command": "liveChangeFollower.startRecording",
+        "title": "Live Change Follower: Start Recording Session"
+      },
+      {
+        "command": "liveChangeFollower.stopRecording",
+        "title": "Live Change Follower: Stop Recording and Save"
+      },
+      {
+        "command": "liveChangeFollower.openRecording",
+        "title": "Live Change Follower: Open Recording File"
+      },
+      {
+        "command": "liveChangeFollower.playRecording",
+        "title": "Live Change Follower: Play Recording"
+      },
+      {
+        "command": "liveChangeFollower.pausePlayback",
+        "title": "Live Change Follower: Pause Playback"
+      },
+      {
+        "command": "liveChangeFollower.stopPlayback",
+        "title": "Live Change Follower: Stop Playback"
+      },
+      {
+        "command": "liveChangeFollower.skipForward",
+        "title": "Live Change Follower: Skip to Next Event"
+      },
+      {
+        "command": "liveChangeFollower.skipBackward",
+        "title": "Live Change Follower: Skip to Previous Event"
+      },
+      {
+        "command": "liveChangeFollower.speedUp",
+        "title": "Live Change Follower: Increase Playback Speed"
+      },
+      {
+        "command": "liveChangeFollower.slowDown",
+        "title": "Live Change Follower: Decrease Playback Speed"
+      },
+      {
+        "command": "liveChangeFollower.toggleLiveDelay",
+        "title": "Live Change Follower: Toggle Live Delay Mode"
+      },
+      {
+        "command": "liveChangeFollower.catchUpToLive",
+        "title": "Live Change Follower: Catch Up to Live"
+      },
+      {
+        "command": "liveChangeFollower.showTimeline",
+        "title": "Live Change Follower: Show Timeline Panel"
+      },
+      {
+        "command": "liveChangeFollower.toggleDiagnosticsBridge",
+        "title": "Live Change Follower: Toggle Diagnostics Bridge"
+      },
+      {
+        "command": "liveChangeFollower.flushDiagnostics",
+        "title": "Live Change Follower: Flush Diagnostics to File"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "type": "webview",
+          "id": "liveChangeFollower.timeline",
+          "name": "Change Timeline",
+          "when": "liveChangeFollower.hasRecording"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Live Change Follower",
+      "properties": {
+        "liveChangeFollower.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable follow mode on startup"
+        },
+        "liveChangeFollower.includePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/*"
+          ],
+          "description": "Glob patterns for files to include (e.g., ['**/*.ts', 'src/**/*'])"
+        },
+        "liveChangeFollower.excludePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/node_modules/**",
+            "**/.git/**",
+            "**/out/**",
+            "**/dist/**",
+            "**/*.vsix"
+          ],
+          "description": "Glob patterns for files to exclude"
+        },
+        "liveChangeFollower.respectGitignore": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore files that are listed in .gitignore"
+        },
+        "liveChangeFollower.disableOnManualEdit": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically disable follow mode when a manual edit is made in the editor"
+        },
+        "liveChangeFollower.debounceMs": {
+          "type": "number",
+          "default": 150,
+          "minimum": 0,
+          "maximum": 2000,
+          "description": "Debounce interval in milliseconds for file change events"
+        },
+        "liveChangeFollower.highlightDuration": {
+          "type": "number",
+          "default": 2000,
+          "minimum": 0,
+          "maximum": 10000,
+          "description": "Duration in milliseconds to highlight changed lines (0 to disable)"
+        },
+        "liveChangeFollower.maxTrackedFiles": {
+          "type": "number",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 10,
+          "description": "Maximum number of recently changed files to keep open simultaneously"
+        },
+        "liveChangeFollower.openInColumn": {
+          "type": "string",
+          "enum": ["active", "beside", "one", "two", "three"],
+          "default": "beside",
+          "description": "Which editor column to open followed files in"
+        },
+        "liveChangeFollower.recordingsPath": {
+          "type": "string",
+          "default": ".recordings",
+          "description": "Directory for saved session recordings (relative to workspace root)"
+        },
+        "liveChangeFollower.liveDelaySeconds": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 300,
+          "description": "Delay in seconds for live delay mode (0 to disable)"
+        },
+        "liveChangeFollower.defaultPlaybackSpeed": {
+          "type": "number",
+          "default": 1,
+          "enum": [0.25, 0.5, 1, 2, 4],
+          "description": "Default playback speed multiplier"
+        },
+        "liveChangeFollower.diagnosticsBridge.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Write LSP/linter diagnostics to a file so terminal agents can read them"
+        },
+        "liveChangeFollower.diagnosticsBridge.outputPath": {
+          "type": "string",
+          "default": ".vscode/agent-diagnostics.json",
+          "description": "Path (relative to workspace root) for the diagnostics output file"
+        },
+        "liveChangeFollower.diagnosticsBridge.severities": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["error", "warning", "info", "hint"]
+          },
+          "default": ["error", "warning"],
+          "description": "Which diagnostic severities to include in the output"
+        },
+        "liveChangeFollower.diagnosticsBridge.debounceMs": {
+          "type": "number",
+          "default": 500,
+          "minimum": 100,
+          "maximum": 5000,
+          "description": "Debounce interval for writing diagnostics to disk"
+        },
+        "liveChangeFollower.diagnosticsBridge.includeSource": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include the diagnostic source (e.g., 'ts', 'eslint') in the output"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "lint:fix": "eslint src --ext ts --fix",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "pretest": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "@vscode/test-electron": "^2.3.8",
+    "@vscode/vsce": "^2.22.0",
+    "eslint": "^8.56.0",
+    "mocha": "^10.2.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "ignore": "^7.0.5",
+    "minimatch": "^9.0.3"
+  }
+}

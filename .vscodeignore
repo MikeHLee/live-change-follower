@@ -1,0 +1,17 @@
+.vscode/**
+.vscode-test/**
+src/**
+.gitignore
+.eslintrc.json
+tsconfig.json
+**/*.ts
+**/*.map
+.github/**
+*.vsix
+**/*.pdn
+out/test/**
+node_modules/**
+!node_modules/minimatch/**
+!node_modules/brace-expansion/**
+!node_modules/balanced-match/**
+!node_modules/ignore/**

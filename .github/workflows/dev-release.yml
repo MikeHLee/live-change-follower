@@ -1,0 +1,118 @@
+name: Dev Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  dev-release:
+    # Only run on direct pushes to main, not from PR merges or other refs
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile
+        run: npm run compile
+
+      - name: Generate dev version
+        id: version
+        run: |
+          BASE_VERSION=$(node -p "require('./package.json').version")
+          DEV_VERSION="${BASE_VERSION}-dev.${GITHUB_RUN_NUMBER}"
+          echo "version=${DEV_VERSION}" >> $GITHUB_OUTPUT
+          npm version $DEV_VERSION --no-git-tag-version
+
+      - name: Package extension
+        run: npm run package
+
+      - name: Get VSIX filename
+        id: vsix
+        run: |
+          VSIX_FILE=$(ls *.vsix)
+          echo "filename=${VSIX_FILE}" >> $GITHUB_OUTPUT
+
+      - name: Delete existing release assets
+        run: |
+          # Get all assets from the dev release and delete them
+          gh release view dev --json assets -q '.assets[].name' | while read -r asset; do
+            echo "Deleting asset: $asset"
+            gh release delete-asset dev "$asset" --yes || true
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update dev release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: dev
+          name: Development Build
+          body: |
+            ## Latest Development Build
+
+            **Version:** ${{ steps.version.outputs.version }}
+            **Commit:** ${{ github.sha }}
+            **Built:** ${{ github.event.head_commit.timestamp }}
+
+            This is an automatically updated development release containing the latest build from the main branch.
+
+            ### Quick Install
+
+            Copy and paste one of the following commands to download and install the extension:
+
+            <details>
+            <summary><strong>VS Code</strong></summary>
+
+            **Bash (macOS/Linux):**
+            ```bash
+            curl -sL $(curl -s https://api.github.com/repos/DamianEdwards/vsc-change-agent-watch/releases/tags/dev | grep -o '"browser_download_url": *"[^"]*\.vsix"' | cut -d'"' -f4) -o /tmp/file-change-follower.vsix && code --install-extension /tmp/file-change-follower.vsix && rm /tmp/file-change-follower.vsix
+            ```
+
+            **PowerShell (Windows/macOS/Linux):**
+            ```powershell
+            $u = (Invoke-RestMethod "https://api.github.com/repos/DamianEdwards/vsc-change-agent-watch/releases/tags/dev").assets[0].browser_download_url; $f = Join-Path ([IO.Path]::GetTempPath()) "file-change-follower.vsix"; Invoke-WebRequest $u -OutFile $f; code --install-extension $f; Remove-Item $f
+            ```
+
+            </details>
+
+            <details>
+            <summary><strong>VS Code Insiders</strong></summary>
+
+            **Bash (macOS/Linux):**
+            ```bash
+            curl -sL $(curl -s https://api.github.com/repos/DamianEdwards/vsc-change-agent-watch/releases/tags/dev | grep -o '"browser_download_url": *"[^"]*\.vsix"' | cut -d'"' -f4) -o /tmp/file-change-follower.vsix && code-insiders --install-extension /tmp/file-change-follower.vsix && rm /tmp/file-change-follower.vsix
+            ```
+
+            **PowerShell (Windows/macOS/Linux):**
+            ```powershell
+            $u = (Invoke-RestMethod "https://api.github.com/repos/DamianEdwards/vsc-change-agent-watch/releases/tags/dev").assets[0].browser_download_url; $f = Join-Path ([IO.Path]::GetTempPath()) "file-change-follower.vsix"; Invoke-WebRequest $u -OutFile $f; code-insiders --install-extension $f; Remove-Item $f
+            ```
+
+            </details>
+
+            ### Manual Installation
+
+            1. Download the `.vsix` file below
+            2. In VS Code, open Command Palette (Ctrl+Shift+P)
+            3. Run "Extensions: Install from VSIX..."
+            4. Select the downloaded file
+          files: ${{ steps.vsix.outputs.filename }}
+          prerelease: true
+          make_latest: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
