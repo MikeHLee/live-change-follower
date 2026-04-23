@@ -2,6 +2,20 @@
 
 Watch your terminal-based coding agents work in real-time. Multi-file follow mode, timeline with diff previews, and a diagnostics bridge so CLI agents can see LSP/linter errors.
 
+## Acknowledgments
+
+This extension is a fork of **[File Change Follower](https://github.com/DamianEdwards/vsc-change-agent-watch)** by [Damian Edwards](https://github.com/DamianEdwards). 
+
+Many thanks to Damian for creating the original extension and releasing it under the MIT license. This fork builds on that foundation with additional features:
+
+- Multi-file tracking (configurable window of N recent files)
+- Timeline webview with mini-diff previews
+- Diagnostics bridge: writes LSP/linter errors to JSON for CLI agents
+- Configurable editor column for followed files
+- Bug fixes for Apple Silicon Macs
+
+If you find this extension useful, please consider starring both [this repository](https://github.com/MikeHLee/live-change-follower) and the [original project](https://github.com/DamianEdwards/vsc-change-agent-watch).
+
 ## Features
 
 ### Multi-File Following
@@ -40,6 +54,12 @@ jq '.totals.error' .vscode/agent-diagnostics.json
 ```
 
 ## Installation
+
+### From VS Code Marketplace
+Search for "Live Change Follower" in the Extensions panel or run:
+```
+code --install-extension MikeHLee.live-change-follower
+```
 
 ### From VSIX (local)
 ```bash
@@ -93,17 +113,10 @@ code --install-extension live-change-follower-0.4.0.vsix
 | `liveChangeFollower.diagnosticsBridge.debounceMs` | `500` | Debounce for file writes |
 | `liveChangeFollower.diagnosticsBridge.includeSource` | `true` | Include diagnostic source (ts, eslint, etc.) |
 
-## Attribution
+## Changelog
 
-This project is a fork of [File Change Follower](https://github.com/DamianEdwards/vsc-change-agent-watch) by Damian Edwards, extended with:
-
-- Multi-file tracking
-- Timeline with diff previews  
-- Diagnostics bridge for CLI agents
-- Bug fixes for Apple Silicon Macs
-
-Original MIT license retained. See LICENSE for details.
+See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## License
 
-MIT
+MIT - See [LICENSE](LICENSE) for details.
